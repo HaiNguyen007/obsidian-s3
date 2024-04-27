@@ -31,6 +31,7 @@ esbuild.build({
 		'@lezer/common',
 		'@lezer/highlight',
 		'@lezer/lr',
+		...builtins.map(mod => `node:${mod}`),  // Handle node: prefix for built-in modules
 		...builtins],
 	format: 'cjs',
 	watch: !prod,

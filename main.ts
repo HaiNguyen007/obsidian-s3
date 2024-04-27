@@ -117,25 +117,28 @@ export default class ObsidianS3 extends Plugin {
 			const s3 = server.getClient(id);
 			const s3Index = await s3.listObjects();
 			const doDelete = s3Index.filter((i) => i.name !== undefined && !filter.includes(i.name));
+			//const doDelete = s3Index.filter((i) => i.name && !filter.includes(i.name));
 			if (doDelete.length === 0) {
 				new Notice(`[${id}] No object to delete.`);
 				continue;
 			}
 			new Notice(`[${id}] Found ${doDelete.length} un-used objects, deleting...`);
-			for (let y = 0; y < doDelete.length; y++) {
-				console.log(`[${id}] S3: Deleting ${doDelete[i].name}`);
-				for (let i = 0; i < doDelete.length; i++) {
-					if (doDelete[i].name !== undefined) {
-						await this.s3.removeObject(doDelete[i].name);
+			for (let i = 0; i < doDelete.length; i++) {
+				if (typeof doDelete[i].name === 'string') {
+					try {
+						await s3.removeObject(doDelete[i].name as string);  // Use the correctly scoped 's3' variable
+					} catch (error) {
+						console.error('Error removing object:', doDelete[i].name, error);
 					}
-				}				
-			}
+				} else {
+					console.log('Skipping removal, name is undefined:', doDelete[i].name);
+				}
+			}						
 			new Notice(`[${id}] Deleted ${doDelete.length} objects.`);
 			new Notice(`[${id}] Current bucket size ${prettyBytes(await s3.getBucketSize())}`);
 		}
 
 	}
-
 	tryStartService(): boolean {
 		if (isValidSettings(settings)) {
 			new Notice(`Creating S3 Clients`);
